@@ -18,7 +18,7 @@
                     <j:choose><j:when test="${job.flow}">Ablauf</j:when><j:otherwise>Job</j:otherwise></j:choose>
                     <j:if test="${not empty(job.schedule)}"> · Zeitgesteuert</j:if>
                   </div>
-                  <h2><a href="${rootURL}/gretl-console/${job.id}/">${job.title}</a></h2>
+                  <h2><a href="${rootURL}/gretl-console/${job.route}/">${job.title}</a></h2>
                   <p>${job.description}</p>
                   <j:set var="latest" value="${job.latest}"/>
                   <div class="gretl-card-meta">

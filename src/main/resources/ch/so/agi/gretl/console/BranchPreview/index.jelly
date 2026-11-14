@@ -1,5 +1,5 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout">
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:st="jelly:stapler">
   <l:layout title="Git-Branch-Vorschau · GRETL Console">
     <l:header><link rel="stylesheet" href="${rootURL}/plugin/gretl-console/css/console.css"/></l:header>
     <l:main-panel>
@@ -20,6 +20,14 @@
               <j:when test="${it.current}"><p>Die Vorschau entspricht dem bereitgestellten Commit.</p></j:when>
               <j:otherwise><p>Jobstarts verwenden weiterhin den bereitgestellten Commit.</p></j:otherwise>
             </j:choose>
+            <j:if test="${it.developerJob != null}">
+              <section class="gretl-section">
+                <h2>Entwicklungsbranch ausführen</h2>
+                <j:set var="previewBranch" value="${it.branch}"/>
+                <j:set var="previewCommit" value="${it.commit}"/>
+                <st:include it="${it.developerJob}" page="buildForm.jelly"/>
+              </section>
+            </j:if>
             <j:if test="${not empty(it.sourceUrl)}"><a href="${it.sourceUrl}">Schema-V2-Datei an diesem Commit öffnen</a></j:if>
           </j:otherwise>
         </j:choose>

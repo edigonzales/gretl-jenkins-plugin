@@ -38,6 +38,18 @@ public final class ConsoleJob {
         return metadata.getString("id");
     }
 
+    public boolean isDeveloper() {
+        return metadata.optBoolean("developer");
+    }
+
+    public String getRoute() {
+        return (isDeveloper() ? "dev-" : "") + getId();
+    }
+
+    String getRepository() {
+        return metadata.getString("url");
+    }
+
     public String getTitle() {
         return job.getDisplayName();
     }
@@ -64,6 +76,9 @@ public final class ConsoleJob {
         job.checkPermission(Item.READ);
         String repository = metadata.getString("url").replaceFirst("\\.git$", "");
         BranchPreview preview = BranchPreview.resolve(repository, branch, getRevision(), metadata.optString("source"));
+        if (preview.getCommit() != null) {
+            preview.setDeveloperJob(GretlConsole.developerJob(getId(), getRepository(), getRevision()));
+        }
         response.setHeader("Cache-Control", "no-store");
         request.getView(preview, "index.jelly").forward(request, response);
     }
@@ -101,6 +116,10 @@ public final class ConsoleJob {
         JSONArray parameters = metadata.optJSONArray("parameters");
         List<Field> fields = new ArrayList<>();
         for (ParameterDefinition definition : property.getParameterDefinitions()) {
+            if (isDeveloper() && (definition.getName().equals("GRETL_DEV_BRANCH")
+                    || definition.getName().equals("GRETL_DEV_SHA"))) {
+                continue;
+            }
             JSONObject parameter = new JSONObject();
             if (parameters != null) {
                 for (Object candidate : parameters) {
@@ -130,7 +149,7 @@ public final class ConsoleJob {
         boolean artifacts = (!Functions.isArtifactsPermissionEnabled() || run.hasPermission(Run.ARTIFACTS))
                 && !run.getArtifactsUpTo(1).isEmpty();
         return new Build(run.getNumber(), run.getUrl(), status, waiting,
-                artifacts, run.getTimestampString2());
+                artifacts, run.getTimestampString2(), run.getDescription());
     }
 
     private static String resultLabel(Result result) {
@@ -152,13 +171,14 @@ public final class ConsoleJob {
         return run == null ? null : build(run);
     }
 
-    public record Build(int number, String url, String status, boolean waiting, boolean artifacts, String age) {
+    public record Build(int number, String url, String status, boolean waiting, boolean artifacts, String age, String description) {
         public int getNumber() { return number; }
         public String getUrl() { return url; }
         public String getStatus() { return status; }
         public boolean isWaiting() { return waiting; }
         public boolean isArtifacts() { return artifacts; }
         public String getAge() { return age; }
+        public String getDescription() { return description; }
     }
 
     public record Choice(String value, String label, boolean selected) {

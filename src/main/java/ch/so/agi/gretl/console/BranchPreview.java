@@ -19,6 +19,7 @@ public final class BranchPreview {
     private final String source;
     private final String commit;
     private final String error;
+    private ConsoleJob developerJob;
 
     private BranchPreview(String repository, String branch, String deployed, String source, String commit, String error) {
         this.repository = repository;
@@ -98,6 +99,14 @@ public final class BranchPreview {
         } finally {
             connection.disconnect();
         }
+    }
+
+    void setDeveloperJob(ConsoleJob developerJob) {
+        this.developerJob = developerJob;
+    }
+
+    public ConsoleJob getDeveloperJob() {
+        return developerJob;
     }
 
     public String getBranch() { return branch; }
