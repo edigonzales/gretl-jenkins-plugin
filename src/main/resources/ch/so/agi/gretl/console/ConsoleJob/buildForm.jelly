@@ -1,0 +1,77 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:f="/lib/form" xmlns:st="jelly:stapler">
+  <f:form method="post" action="${rootURL}/${it.jobUrl}build" name="parameters" class="jenkins-form">
+    <j:if test="${it.developer}">
+      <div name="parameter">
+        <input type="hidden" name="name" value="GRETL_DEV_BRANCH"/>
+        <input type="hidden" name="value" value="${previewBranch}"/>
+      </div>
+      <div name="parameter">
+        <input type="hidden" name="name" value="GRETL_DEV_SHA"/>
+        <input type="hidden" name="value" value="${previewCommit}"/>
+      </div>
+    </j:if>
+    <j:forEach var="field" items="${it.fields}">
+      <j:set var="parameter" value="${field.definition}"/>
+      <j:choose>
+        <j:when test="${field.type == 'date' or field.type == 'integer' or field.type == 'enum'}">
+          <div class="gretl-field">
+            <label for="${parameter.name}">${field.label}</label>
+            <div name="parameter">
+              <input type="hidden" name="name" value="${parameter.name}"/>
+              <j:choose>
+                <j:when test="${field.type == 'enum'}">
+                  <div class="jenkins-select">
+                    <select id="${parameter.name}" class="jenkins-select__input" name="value">
+                      <j:forEach var="choice" items="${field.choices}">
+                        <f:option value="${choice.value}" selected="${choice.selected}">${choice.label}</f:option>
+                      </j:forEach>
+                    </select>
+                  </div>
+                </j:when>
+                <j:when test="${field.type == 'date'}">
+                  <input class="jenkins-input" id="${parameter.name}" type="date" required="${field.required ? 'required' : null}" name="value" value="${field.defaultValue}"/>
+                </j:when>
+                <j:otherwise>
+                  <input class="jenkins-input" id="${parameter.name}" type="number" required="${field.required ? 'required' : null}" step="1"
+                         min="-2147483648" max="2147483647" name="value" value="${field.defaultValue}"/>
+                </j:otherwise>
+              </j:choose>
+            </div>
+          </div>
+        </j:when>
+        <j:when test="${field.type == 'text' or field.type == 'multiline' or field.type == 'boolean' or field.type == 'file'}">
+          <div class="gretl-field">
+            <label for="${parameter.name}">${field.label}</label>
+            <div name="parameter">
+              <input type="hidden" name="name" value="${parameter.name}"/>
+              <j:choose>
+                <j:when test="${field.type == 'multiline'}">
+                  <textarea class="jenkins-input" id="${parameter.name}" name="value" rows="4" maxlength="4096" required="${field.required ? 'required' : null}">${field.defaultValue}</textarea>
+                </j:when>
+                <j:when test="${field.type == 'boolean'}">
+                  <input id="${parameter.name}" type="checkbox" name="value" checked="${parameter.defaultParameterValue.value ? 'checked' : null}"/>
+                </j:when>
+                <j:when test="${field.type == 'file'}">
+                  <input id="${parameter.name}" type="file" required="${field.required ? 'required' : null}" name="file" class="jenkins-file-upload" jsonAware="true" accept="${field.accept}"/>
+                </j:when>
+                <j:otherwise>
+                  <input class="jenkins-input" id="${parameter.name}" type="text" required="${field.required ? 'required' : null}" name="value" value="${field.defaultValue}" maxlength="4096"/>
+                </j:otherwise>
+              </j:choose>
+            </div>
+          </div>
+        </j:when>
+        <j:otherwise>
+          <j:set var="escapeEntryTitleAndDescription" value="true"/>
+          <st:include it="${parameter}" page="${parameter.descriptor.valuePage}"/>
+        </j:otherwise>
+      </j:choose>
+    </j:forEach>
+    <input type="hidden" name="statusCode" value="303"/>
+    <input type="hidden" name="redirectTo" value="${rootURL}/gretl-console/${it.route}/"/>
+    <button class="jenkins-button jenkins-button--primary" type="submit">
+      <l:icon src="symbol-play"/> ${it.developer ? "Mit diesem Branch starten" : "Starten"}
+    </button>
+  </f:form>
+</j:jelly>
